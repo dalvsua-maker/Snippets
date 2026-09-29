@@ -27,19 +27,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Resumen del Proyecto - Agencia Premium</title>
   <link rel="stylesheet" href="main.css">
-  <style>
-    body.page-resumen { padding-top: 0 !important; min-height: 100vh; display: flex; flex-direction: column; justify-content: space-between; }
-    .main-header.header-static { position: relative !important; top: auto !important; left: auto !important; box-shadow: none; }
-    .resumen-main-container { flex: 1; display: flex; align-items: center; justify-content: center; padding: 80px 20px; width: 100%; }
-    .resumen-card { margin: 0 auto !important; max-width: 650px; width: 100%; padding: 48px 40px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 30px rgba(59, 130, 246, 0.12); }
-    .resumen-item { margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border-color); }
-    .resumen-value { font-size: 1.15rem; color: var(--text-main); font-weight: 500; word-break: break-word; line-height: 1.5;  }
-    .resumen-label { font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; display: block; font-weight: 600; }
-    .resumen-value-empty { font-size: 1.15rem; color: var(--text-main); font-weight: 500; word-break: break-word; line-height: 1.5; margin-top: 20px;
-    justify-self: center; }
-    .btn-container { margin-top: 32px; }
-    .error-box { background-color: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; padding: 15px; border-radius: 10px; margin-bottom: 20px; }
-  </style>
 </head>
 <body class="page-resumen">
 
@@ -72,7 +59,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       <?php endif; ?>
 
       <!-- Contenedor que PHP muestra si es POST, o que JavaScript mostrará si detecta localStorage -->
-      <div id="contenedor-datos" style="<?php echo (!$datosValidos) ? 'display: none;' : ''; ?>">
+      <div id="contenedor-datos" <?php if (!$datosValidos) echo 'style="display: none;"'; ?>>
         <div class="resumen-item">
           <span class="resumen-label">Hero Seleccionado</span>
           <div class="resumen-value" id="resumen-hero"><?php echo $heroElegido; ?></div>
@@ -95,9 +82,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       </div>
 
       <!-- Mensaje de estado vacío si no se envían datos y localStorage está vacío -->
-      <div id="mensaje-vacio" style="<?php echo ($datosValidos) ? 'display: none;' : ''; ?>">
+      <div id="mensaje-vacio" <?php if ($datosValidos) echo 'style="display: none;"'; ?>>
         <div class="resumen-item">
-            <div class="resumen-value-empty" style="color: var(--text-muted);">Aún no se han enviado datos.</div>
+            <div class="resumen-value-empty">Aún no se han enviado datos.</div>
         </div>
       </div>
 
