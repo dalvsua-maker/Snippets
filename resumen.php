@@ -56,8 +56,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       </nav>
     </div>
   </header>
-
-  <main class="resumen-main-container">
+<main class="resumen-main-container">
     <div class="contact-wrap resumen-card">
       <h1>Resumen del Proyecto <small>Confirmación de los datos de tu propuesta</small></h1>
 
@@ -68,31 +67,37 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <?php foreach ($errores as $error) echo "<li>$error</li>"; ?>
             </ul>
         </div>
-      <?php elseif ($datosValidos): ?>
+      <?php endif; ?>
+
+      <!-- Contenedor que PHP muestra si es POST, o que JavaScript mostrará si detecta localStorage -->
+      <div id="contenedor-datos" style="<?php echo (!$datosValidos) ? 'display: none;' : ''; ?>">
         <div class="resumen-item">
           <span class="resumen-label">Hero Seleccionado</span>
-          <div class="resumen-value"><?php echo $heroElegido; ?></div>
+          <div class="resumen-value" id="resumen-hero"><?php echo $heroElegido; ?></div>
         </div>
 
         <div class="resumen-item">
           <span class="resumen-label">Nombre del Solicitante</span>
-          <div class="resumen-value"><?php echo $nombre; ?></div>
+          <div class="resumen-value" id="resumen-nombre"><?php echo $nombre; ?></div>
         </div>
 
         <div class="resumen-item">
           <span class="resumen-label">Correo Electrónico</span>
-          <div class="resumen-value"><?php echo $email; ?></div>
+          <div class="resumen-value" id="resumen-email"><?php echo $email; ?></div>
         </div>
 
         <div class="resumen-item">
           <span class="resumen-label">Motivo de la Elección</span>
-          <div class="resumen-value"><?php echo nl2br($motivo); ?></div>
+          <div class="resumen-value" id="resumen-motivo"><?php echo nl2br($motivo); ?></div>
         </div>
-      <?php else: ?>
+      </div>
+
+      <!-- Mensaje de estado vacío si no se envían datos y localStorage está vacío -->
+      <div id="mensaje-vacio" style="<?php echo ($datosValidos) ? 'display: none;' : ''; ?>">
         <div class="resumen-item">
             <div class="resumen-value" style="color: var(--text-muted);">Aún no se han enviado datos.</div>
         </div>
-      <?php endif; ?>
+      </div>
 
       <div class="btn-container">
         <a href="index.html" class="btn-secondary" style="display: block; text-align: center; text-decoration: none; padding: 14px 28px; border-radius: 12px;">
@@ -103,6 +108,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   </main>
 
   <!-- (Puedes mantener el footer original aquí, lo omito por brevedad pero debe ir el mismo bloque <footer class="main-footer">...) -->
-
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <!--Cargar script.js -->
+  <script src="script.js"></script>
 </body>
 </html>

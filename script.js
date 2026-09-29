@@ -43,62 +43,78 @@ $(document).ready(function() {
       });
     }
 
-  // ==========================================================================
-// VALIDACIÓN DEL FORMULARIO PREVIO AL ENVÍO PHP
-// ==========================================================================
-$('.contact-form').on('submit', function(e) {       
-  $('.form-notification').remove();
-
-  var incompleto = false;
-  var camposVacios = [];
-
-  $(this).find('.form-control').each(function() {
-    if ($(this).val().trim() === '') {
-      incompleto = true;
-      camposVacios.push($(this).parent().find('label').text() || 'Campo requerido');
-      $(this).parent('.input-block').addClass('has-error');
-    } else {
-      $(this).parent('.input-block').removeClass('has-error');
-    }
-  });
-
-  if (incompleto) {
-    // Si hay error, detenemos el envío al servidor PHP
-    e.preventDefault(); 
-    var $mensajeHtml = $('<div class="form-notification error-message"></div>');
-    $mensajeHtml.html('<strong>¡Faltan campos obligatorios!</strong> Por favor, completa: ' + camposVacios.join(', ') + '.');
-    $(this).find('.square-button').before($mensajeHtml).prev().hide().fadeIn(300);
-  }
-  // Si no está incompleto, dejamos que el formulario envíe los datos vía POST a resumen.php
-});
+ // ==========================================================================
+    // VALIDACIÓN DEL FORMULARIO PREVIO AL ENVÍO PHP
+    // ==========================================================================
+    $('.contact-form').on('submit', function(e) {       
+      $('.form-notification').remove();
+    
+      var incompleto = false;
+      var camposVacios = [];
+    
+      $(this).find('.form-control').each(function() {
+        if ($(this).val().trim() === '') {
+          incompleto = true;
+          camposVacios.push($(this).parent().find('label').text() || 'Campo requerido');
+          $(this).parent('.input-block').addClass('has-error');
+        } else {
+          $(this).parent('.input-block').removeClass('has-error');
+        }
+      });
+    
+      if (incompleto) {
+        // Si hay error, detenemos el envío al servidor PHP
+        e.preventDefault(); 
+        var $mensajeHtml = $('<div class="form-notification error-message"></div>');
+        $mensajeHtml.html('<strong>¡Faltan campos obligatorios!</strong> Por favor, completa: ' + camposVacios.join(', ') + '.');
+        $(this).find('.square-button').before($mensajeHtml).prev().hide().fadeIn(300);
+      } else {
+        // NUEVO: Guardar en localStorage si el formulario es válido antes del envío POST
+        var datosProyecto = {
+            heroElegido: $('#heroElegido').val(),
+            nombre: $('#nombre').val(),
+            email: $('#email').val(),
+            motivo: $('#motivo').val()
+        };
+        localStorage.setItem('datosProyecto', JSON.stringify(datosProyecto));
+      }
+    });
 
     // ==========================================================================
-    // LOGICA RENDER DATA RESUMEN.HTML
+    // LOGICA RENDER DATA RESUMEN.HTML / RESUMEN.PHP
     // ==========================================================================
+    // Verificamos si existe el contenedor que crearemos en resumen.php
     if ($('#resumen-hero').length > 0) {
         var datosGuardados = localStorage.getItem('datosProyecto');
+        
         if (datosGuardados) {
             try {
                 var datos = JSON.parse(datosGuardados);
+                // Rellenamos el HTML con los datos cacheados
                 $('#resumen-hero').text(datos.heroElegido || "No especificado");
                 $('#resumen-nombre').text(datos.nombre || "No especificado");
                 $('#resumen-email').text(datos.email || "No especificado");
                 $('#resumen-motivo').text(datos.motivo || "No especificado");
+                
+                // Forzamos a que se muestre el contenedor de datos y ocultamos el mensaje vacío
+                $('#contenedor-datos').show();
+                $('#mensaje-vacio').hide();
             } catch (error) {
                 console.error("Error localStorage:", error);
                 mostrarMensajeVacio();
             }
         } else {
-            mostrarMensajeVacio();
+            // Validamos por si acaso el PHP inyectó datos vía POST a pesar de no haber localStorage
+            if ($('#resumen-hero').text().trim() === '') {
+                mostrarMensajeVacio();
+            }
         }
     }
 
     function mostrarMensajeVacio() {
-        ['#resumen-hero', '#resumen-nombre', '#resumen-email', '#resumen-motivo'].forEach(function(selector) {
-            $(selector).text("Sin datos registrados").css("color", "var(--text-muted)");
-        });
+        $('#contenedor-datos').hide();
+        $('#mensaje-vacio').show();
     }
-
     // ==========================================================================
     // INTERSECTION OBSERVER
     // ==========================================================================

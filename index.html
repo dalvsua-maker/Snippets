@@ -229,37 +229,26 @@
         <!-- COLUMNA DERECHA: Formulario -->
         <div class="contact-wrap">
           <h1>Formulario de heros<small>Elige el que mas te guste</small></h1>
-          <form
-            class="contact-form"
-            action="resumen.php"
-            method="POST"
-            autocomplete="off"
-          >
+      <form class="contact-form" action="resumen.php" method="POST" autocomplete="off">
             <div class="input-block">
               <label>Nombre de hero elegido</label>
-              <input
-                type="text"
-                class="form-control"
-                name="heroElegido"
-                required
-              />
+              <!-- Se añadió id="heroElegido" -->
+              <input type="text" class="form-control" name="heroElegido" id="heroElegido" required />
             </div>
             <div class="input-block">
               <label>Tu nombre</label>
-              <input type="text" class="form-control" name="nombre" required />
+              <!-- Se añadió id="nombre" -->
+              <input type="text" class="form-control" name="nombre" id="nombre" required />
             </div>
             <div class="input-block">
               <label>Tu Email</label>
-              <input type="email" class="form-control" name="email" required />
+              <!-- Se añadió id="email" -->
+              <input type="email" class="form-control" name="email" id="email" required />
             </div>
             <div class="input-block textarea">
               <label>Describe el porque de tu eleccion</label>
-              <textarea
-                class="form-control"
-                rows="3"
-                name="motivo"
-                required
-              ></textarea>
+              <!-- Se añadió id="motivo" -->
+              <textarea class="form-control" rows="3" name="motivo" id="motivo" required></textarea>
             </div>
             <button type="submit" class="square-button">Send</button>
           </form>
@@ -382,7 +371,7 @@
             </li>
             <!-- NUEVO -->
             <li>
-              <a href="resumen.html" class="footer-link">Resumen de Envío</a>
+              <a href="resumen.php" class="footer-link">Resumen de Envío</a>
             </li>
           </ul>
         </div>
