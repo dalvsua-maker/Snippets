@@ -49,9 +49,13 @@
 
         <!-- Botón de Acción Alineado -->
         <div class="header-actions">
-          <a href="#contacto" class="btn-primary btn-header-cta trigger-contact"
-            >Rellenar formulario</a
+          <a
+            href="#contacto"
+            class="btn-primary btn-header-cta trigger-contact"
+          
           >
+            Rellenar formulario
+          </a>
           <button class="mobile-nav-toggle" aria-label="Abrir menú">
             <span class="hamburger-bar"></span>
             <span class="hamburger-bar"></span>
@@ -229,26 +233,55 @@
         <!-- COLUMNA DERECHA: Formulario -->
         <div class="contact-wrap">
           <h1>Formulario de heros<small>Elige el que mas te guste</small></h1>
-      <form class="contact-form" action="resumen.php" method="POST" autocomplete="off">
+          <form
+            class="contact-form"
+            action="resumen.php"
+            method="POST"
+            autocomplete="off"
+          >
             <div class="input-block">
               <label>Nombre de hero elegido</label>
               <!-- Se añadió id="heroElegido" -->
-              <input type="text" class="form-control" name="heroElegido" id="heroElegido" required />
+              <input
+                type="text"
+                class="form-control"
+                name="heroElegido"
+                id="heroElegido"
+                required
+              />
             </div>
             <div class="input-block">
               <label>Tu nombre</label>
               <!-- Se añadió id="nombre" -->
-              <input type="text" class="form-control" name="nombre" id="nombre" required />
+              <input
+                type="text"
+                class="form-control"
+                name="nombre"
+                id="nombre"
+                required
+              />
             </div>
             <div class="input-block">
               <label>Tu Email</label>
               <!-- Se añadió id="email" -->
-              <input type="email" class="form-control" name="email" id="email" required />
+              <input
+                type="email"
+                class="form-control"
+                name="email"
+                id="email"
+                required
+              />
             </div>
             <div class="input-block textarea">
               <label>Describe el porque de tu eleccion</label>
               <!-- Se añadió id="motivo" -->
-              <textarea class="form-control" rows="3" name="motivo" id="motivo" required></textarea>
+              <textarea
+                class="form-control"
+                rows="3"
+                name="motivo"
+                id="motivo"
+                required
+              ></textarea>
             </div>
             <button type="submit" class="square-button">Send</button>
           </form>

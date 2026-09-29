@@ -250,4 +250,26 @@ if (magneticBtn) {
     window.addEventListener('resize', function() {
       if (window.innerWidth > 992) cerrarMenuMovil();
     });
+// ==========================================================================
+// ACCIÓN COMBINADA PARA EL BOTÓN DEL HEADER (Abrir enlace externo + Scroll a contacto)
+// ==========================================================================
+$('.header-actions .btn-header-cta').on('click', function(e) {
+  e.preventDefault();
+  e.stopPropagation(); // Evita que el script global interfiera con este botón
+  
+  // 1. Abrir la URL externa en una nueva pestaña de forma segura
+  var externalLink = document.createElement('a');
+  externalLink.href = 'https://kinetics.colorion.co/?ref=text-effects.colorion.co';
+  externalLink.target = '_blank';
+  document.body.appendChild(externalLink);
+  externalLink.click();
+  document.body.removeChild(externalLink);
+  
+  // 2. Hacer el desplazamiento suave hacia #contacto en la página actual
+  var $targetElement = $('#contacto');
+  if ($targetElement.length) {
+    $('.header-nav').removeClass('mobile-active');
+    $('html, body').animate({ scrollTop: $targetElement.offset().top - 90 }, 800);
+  }
+});
 });

@@ -33,8 +33,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     .resumen-main-container { flex: 1; display: flex; align-items: center; justify-content: center; padding: 80px 20px; width: 100%; }
     .resumen-card { margin: 0 auto !important; max-width: 650px; width: 100%; padding: 48px 40px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 30px rgba(59, 130, 246, 0.12); }
     .resumen-item { margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border-color); }
+    .resumen-value { font-size: 1.15rem; color: var(--text-main); font-weight: 500; word-break: break-word; line-height: 1.5;  }
     .resumen-label { font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; display: block; font-weight: 600; }
-    .resumen-value { font-size: 1.15rem; color: var(--text-main); font-weight: 500; word-break: break-word; line-height: 1.5; }
+    .resumen-value-empty { font-size: 1.15rem; color: var(--text-main); font-weight: 500; word-break: break-word; line-height: 1.5; margin-top: 20px;
+    justify-self: center; }
     .btn-container { margin-top: 32px; }
     .error-box { background-color: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; padding: 15px; border-radius: 10px; margin-bottom: 20px; }
   </style>
@@ -95,7 +97,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       <!-- Mensaje de estado vacío si no se envían datos y localStorage está vacío -->
       <div id="mensaje-vacio" style="<?php echo ($datosValidos) ? 'display: none;' : ''; ?>">
         <div class="resumen-item">
-            <div class="resumen-value" style="color: var(--text-muted);">Aún no se han enviado datos.</div>
+            <div class="resumen-value-empty" style="color: var(--text-muted);">Aún no se han enviado datos.</div>
         </div>
       </div>
 
@@ -107,7 +109,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
   </main>
 
-  <!-- (Puedes mantener el footer original aquí, lo omito por brevedad pero debe ir el mismo bloque <footer class="main-footer">...) -->
+
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <!--Cargar script.js -->
   <script src="script.js"></script>
