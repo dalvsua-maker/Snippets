@@ -72,7 +72,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         <div class="resumen-item">
           <span class="resumen-label">Correo Electrónico</span>
-          <div class="resumen-value" id="resumen-email"><?php echo $email; ?></div>
+          <div class="resumen-value" id="resumen-email"><?php echo htmlspecialchars($email); ?></div>
         </div>
 
         <div class="resumen-item">
@@ -89,7 +89,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
       </div>
 
       <div class="btn-container">
-        <a href="index.html" class="btn-secondary" style="display: block; text-align: center; text-decoration: none; padding: 14px 28px; border-radius: 12px;">
+        <a href="index.html" class="btn-secondary">
           Volver a la Página Principal
         </a>
       </div>
