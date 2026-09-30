@@ -1,37 +1,51 @@
 <?php
-// Recogemos y saneamos los datos del formulario (si existen)
-$heroElegido = htmlspecialchars(trim($_POST['heroElegido'] ?? ''));
-$nombre      = htmlspecialchars(trim($_POST['nombre'] ?? ''));
-$email       = trim($_POST['email'] ?? '');
-$motivo      = htmlspecialchars(trim($_POST['motivo'] ?? ''));
+// 1. Iniciar la sesión para recordar datos entre peticiones
+session_start();
 
-$errores = [];
-$datosValidos = false;
+// 2. SI LA PETICIÓN ES POST (Viene desde AJAX para validar)
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Establecer cabecera JSON
+    header('Content-Type: application/json');
 
-// Validación en el servidor PHP
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    if (empty($heroElegido)) $errores[] = "El hero es obligatorio.";
-    
-    // Validar nombre (solo letras y espacios)
-    if (empty($nombre)) {
-        $errores[] = "El nombre es obligatorio.";
-    } elseif (!preg_match("/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/", $nombre)) {
-        $errores[] = "El nombre no es válido. Solo se permiten letras y espacios.";
+    $heroElegido = trim($_POST['heroElegido'] ?? '');
+    $nombre      = trim($_POST['nombre'] ?? '');
+    $email       = trim($_POST['email'] ?? '');
+    $motivo      = trim($_POST['motivo'] ?? '');
+
+    $regexNombre = "/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/";
+
+    // Validar nombre en PHP
+    if (empty($nombre) || !preg_match($regexNombre, $nombre)) {
+        echo json_encode([
+            'status'  => 'error',
+            'mensaje' => 'El nombre no es válido. Solo se permiten letras y espacios.'
+        ]);
+        exit;
     }
 
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errores[] = "El formato del email no es válido.";
-    if (empty($motivo)) $errores[] = "El motivo es obligatorio.";
-    
-    if (empty($errores)) {
-        $datosValidos = true;
-    } else {
-        // SI HAY ERRORES: Vaciamos las variables para que PHP NO imprima ningún dato inválido
-        $heroElegido = '';
-        $nombre      = '';
-        $email       = '';
-        $motivo      = '';
-    }
+    // Si la validación es correcta, guardamos los datos en la SESIÓN
+    $_SESSION['datosProyecto'] = [
+        'heroElegido' => $heroElegido,
+        'nombre'      => $nombre,
+        'email'       => $email,
+        'motivo'      => $motivo
+    ];
+
+    echo json_encode(['status' => 'success']);
+    exit;
 }
+
+// 3. SI LA PETICIÓN ES GET (Cuando se abre resumen.php en el navegador)
+// Recuperamos los datos de la sesión (o un arreglo vacío si se entra directamente)
+$datos = $_SESSION['datosProyecto'] ?? [];
+
+$heroElegido = $datos['heroElegido'] ?? 'No especificado';
+$nombre      = $datos['nombre'] ?? 'No especificado';
+$email       = $datos['email'] ?? 'No especificado';
+$motivo      = $datos['motivo'] ?? 'No especificado';
+
+// Variable de control para saber si hay datos que mostrar
+$datosValidos = !empty($datos['nombre']);
 ?>
 <!DOCTYPE html>
 <html lang="es">
