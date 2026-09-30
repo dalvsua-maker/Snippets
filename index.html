@@ -48,7 +48,12 @@
 
         <!-- Botón de Acción Alineado -->
         <div class="header-actions">
-          <a href="#contacto" class="btn-primary btn-header-cta trigger-contact">
+          <a
+            href="#contacto"
+            class="btn-primary btn-header-cta trigger-contact"
+            aria-label="Este botón abrirá una nueva pestaña"
+            title="Este botón abrirá una nueva pestaña"
+          >
             Rellenar formulario
           </a>
           <button class="mobile-nav-toggle" aria-label="Abrir menú">
@@ -228,36 +233,22 @@
             method="POST"
             autocomplete="off"
           >
-            <div class="input-block">
-              <label>Nombre de hero elegido</label>
-              <input
-                type="text"
-                class="form-control"
-                name="heroElegido"
-                id="heroElegido"
-                required
-              />
-            </div>
-            <div class="input-block">
-              <label>Tu nombre</label>
-              <input
-                type="text"
-                class="form-control"
-                name="nombre"
-                id="nombre"
-                required
-              />
-            </div>
-            <div class="input-block">
-              <label>Tu Email</label>
-              <input
-                type="email"
-                class="form-control"
-                name="email"
-                id="email"
-                required
-              />
-            </div>
+  <div class="input-block">
+  <label>Nombre de hero elegido</label>
+  <!-- Cambiado a select; las opciones se inyectan vía JS -->
+  <select class="form-control" name="heroElegido" id="heroElegido" required>
+    <option value="" disabled selected hidden></option>
+  </select>
+</div>
+<div class="input-block">
+  <label>Tu nombre</label>
+  <input type="text" class="form-control" name="nombre" id="nombre" required />
+</div>
+<div class="input-block">
+  <label>Tu Email</label>
+  <!-- Añadido el pattern para validar la máscara del correo -->
+  <input type="email" class="form-control" name="email" id="email" pattern=".*@.*\.(es|com)$" title="El correo debe terminar en .es o .com" required />
+</div>
             <div class="input-block textarea">
               <label>Describe el porque de tu eleccion</label>
               <textarea

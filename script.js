@@ -1,19 +1,43 @@
 $(document).ready(function() {
     
-    // Inicialización suave de labels con valores preexistentes
+    // 1. Poblado dinámico del Dropdown (texto plano, sin números ni caracteres especiales)
+    var $heroSelect = $('#heroElegido');
+    if ($heroSelect.length) {
+        $('.hero-card-section > h1 a').each(function() {
+            // Regex: Mantiene solo letras (mayúsculas/minúsculas) y espacios
+            var nombrePlano = $(this).text().replace(/[^a-zA-Z\s]/g, '').trim();
+            if (nombrePlano !== "") {
+                // Se inyecta la opción con estilo negro oscuro para evitar texto blanco sobre fondo blanco nativo del <option>
+                $heroSelect.append($('<option>', { value: nombrePlano, text: nombrePlano, style: "color: #050811;" }));
+            }
+        });
+    }
+
+    // 2. Inicialización suave de labels con valores preexistentes
     $('.contact-form').find('.form-control').each(function() {
-      if ($(this).val()) {$(this).parent().find('label').css({ 'top': '10px', 'fontSize': '14px' });
+      if ($(this).val()) {
+          $(this).parent().find('label').css({ 'top': '10px', 'fontSize': '14px' });
       }
     });
 
-    // Eventos Focus & Blur optimizados
+    // 3. Eventos Focus, Blur y Change optimizados (Se añade 'change' para adaptar el dinamismo al select)
     $('.contact-form').find('.form-control').on('focus', function() {
-      $(this).parent('.input-block').addClass('focus');$(this).parent().find('label').animate({ 'top': '10px', 'fontSize': '14px' }, 250);
-    }).on('blur', function() {
-      if ($(this).val().length === 0) {
-        $(this).parent('.input-block').removeClass('focus');$(this).parent().find('label').animate({ 'top': '25px', 'fontSize': '18px' }, 250);
+      $(this).parent('.input-block').addClass('focus');
+      $(this).parent().find('label').stop(true, true).animate({ 'top': '10px', 'fontSize': '14px' }, 250);
+    }).on('blur change', function() {
+      // Se utiliza !$(this).val() para proteger contra valores nulos en el select
+      if (!$(this).val() || $(this).val().length === 0) {
+        $(this).parent('.input-block').removeClass('focus');
+        $(this).parent().find('label').stop(true, true).animate({ 'top': '25px', 'fontSize': '18px' }, 250);
+      } else {
+        $(this).parent('.input-block').addClass('focus');
+        $(this).parent().find('label').stop(true, true).animate({ 'top': '10px', 'fontSize': '14px' }, 250);
       }
     });
+
+    // ==========================================================================
+
+    // ==========================================================================
 
     // ==========================================================================
     // EFECTO CINEMÁTICO DE SCROLL (STICKY REVEAL HERO)
@@ -80,11 +104,20 @@ $(document).ready(function() {
       }
     });
 
-    // ==========================================================================
+ // ==========================================================================
     // LOGICA RENDER DATA RESUMEN.HTML / RESUMEN.PHP
     // ==========================================================================
     // Verificamos si existe el contenedor que crearemos en resumen.php
     if ($('#resumen-hero').length > 0) {
+
+        // SI PHP HA DETECTADO ERRORES, DETENEMOS LA CARGA Y LIMPIAMOS LOCALSTORAGE
+        if ($('.error-box').length > 0) {
+            $('#contenedor-datos').hide();
+            $('#mensaje-vacio').show();
+            localStorage.removeItem('datosProyecto'); 
+            return;
+        }
+
         var datosGuardados = localStorage.getItem('datosProyecto');
         
         if (datosGuardados) {

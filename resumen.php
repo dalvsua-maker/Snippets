@@ -11,12 +11,25 @@ $datosValidos = false;
 // Validación en el servidor PHP
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if (empty($heroElegido)) $errores[] = "El hero es obligatorio.";
-    if (empty($nombre)) $errores[] = "El nombre es obligatorio.";
+    
+    // Validar nombre (solo letras y espacios)
+    if (empty($nombre)) {
+        $errores[] = "El nombre es obligatorio.";
+    } elseif (!preg_match("/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/", $nombre)) {
+        $errores[] = "El nombre no es válido. Solo se permiten letras y espacios.";
+    }
+
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errores[] = "El formato del email no es válido.";
     if (empty($motivo)) $errores[] = "El motivo es obligatorio.";
     
     if (empty($errores)) {
         $datosValidos = true;
+    } else {
+        // SI HAY ERRORES: Vaciamos las variables para que PHP NO imprima ningún dato inválido
+        $heroElegido = '';
+        $nombre      = '';
+        $email       = '';
+        $motivo      = '';
     }
 }
 ?>
