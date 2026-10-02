@@ -2,24 +2,74 @@
 // 1. Iniciar la sesión para recordar datos entre peticiones
 session_start();
 
+// Lista de errores de validación (la usa también el bloque .error-box de más abajo)
+$errores = [];
+
 // 2. SI LA PETICIÓN ES POST (Viene desde AJAX para validar)
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Establecer cabecera JSON
-    header('Content-Type: application/json');
 
     $heroElegido = trim($_POST['heroElegido'] ?? '');
     $nombre      = trim($_POST['nombre'] ?? '');
     $email       = trim($_POST['email'] ?? '');
     $motivo      = trim($_POST['motivo'] ?? '');
 
-    $regexNombre = "/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/";
+    $regexNombre = "/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/u";
 
-    // Validar nombre en PHP
-    if (empty($nombre) || !preg_match($regexNombre, $nombre)) {
-        echo json_encode([
-            'status'  => 'error',
-            'mensaje' => 'El nombre no es válido. Solo se permiten letras y espacios.'
-        ]);
+    // ---- VALIDACIONES (todas en PHP). Formato: $errores['idDelCampo'] = 'mensaje' ----
+
+    // Hero elegido: obligatorio, solo letras y espacios
+    if ($heroElegido === '') {
+        $errores['heroElegido'] = 'Debes elegir un hero.';
+    } elseif (!preg_match($regexNombre, $heroElegido) || mb_strlen($heroElegido) > 60) {
+        $errores['heroElegido'] = 'El hero elegido no es válido.';
+    }
+
+    // Nombre: obligatorio, solo letras y espacios, entre 2 y 60 caracteres
+    if ($nombre === '') {
+        $errores['nombre'] = 'El nombre es obligatorio.';
+    } elseif (!preg_match($regexNombre, $nombre)) {
+        $errores['nombre'] = 'El nombre no es válido. Solo se permiten letras y espacios.';
+    } elseif (mb_strlen($nombre) < 2 || mb_strlen($nombre) > 60) {
+        $errores['nombre'] = 'El nombre debe tener entre 2 y 60 caracteres.';
+    }
+
+    // Email: obligatorio, formato válido y terminado en .es o .com
+    if ($email === '') {
+        $errores['email'] = 'El correo electrónico es obligatorio.';
+    } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $errores['email'] = 'El correo electrónico no tiene un formato válido.';
+    } elseif (!preg_match('/\.(es|com)$/i', $email)) {
+        $errores['email'] = 'El correo debe terminar en .es o .com';
+    }
+
+    // Motivo: obligatorio, entre 10 y 500 caracteres
+    if ($motivo === '') {
+        $errores['motivo'] = 'Debes describir el motivo de tu elección.';
+    } elseif (mb_strlen($motivo) < 10) {
+        $errores['motivo'] = 'El motivo debe tener al menos 10 caracteres.';
+    } elseif (mb_strlen($motivo) > 500) {
+        $errores['motivo'] = 'El motivo no puede superar los 500 caracteres.';
+    }
+
+    // ¿Petición AJAX? (jQuery envía la cabecera X-Requested-With)
+    $esAjax = strtolower($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'xmlhttprequest';
+
+    // Si hay errores: se descartan datos antiguos de la sesión y NO se avanza al resumen
+    if (!empty($errores)) {
+        unset($_SESSION['datosProyecto']);
+
+        if ($esAjax) {
+            // Establecer cabecera JSON
+            header('Content-Type: application/json');
+            echo json_encode([
+                'status'  => 'error',
+                'mensaje' => 'Revisa los campos marcados antes de enviar.',
+                'errores' => $errores
+            ]);
+        } else {
+            // Envío sin JavaScript: se vuelve al formulario de index
+            header('Location: index.html#contacto');
+        }
         exit;
     }
 
@@ -31,7 +81,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'motivo'      => $motivo
     ];
 
-    echo json_encode(['status' => 'success']);
+    if ($esAjax) {
+        header('Content-Type: application/json');
+        echo json_encode(['status' => 'success']);
+    } else {
+        header('Location: resumen.php');
+    }
     exit;
 }
 
@@ -80,7 +135,7 @@ $datosValidos = !empty($datos['nombre']);
         <div class="error-box">
             <strong>Se encontraron errores en el envío:</strong>
             <ul>
-                <?php foreach ($errores as $error) echo "<li>$error</li>"; ?>
+                <?php foreach ($errores as $error) echo '<li>' . htmlspecialchars($error) . '</li>'; ?>
             </ul>
         </div>
       <?php endif; ?>
@@ -89,12 +144,12 @@ $datosValidos = !empty($datos['nombre']);
       <div id="contenedor-datos" <?php if (!$datosValidos) echo 'style="display: none;"'; ?>>
         <div class="resumen-item">
           <span class="resumen-label">Hero Seleccionado</span>
-          <div class="resumen-value" id="resumen-hero"><?php echo $heroElegido; ?></div>
+          <div class="resumen-value" id="resumen-hero"><?php echo htmlspecialchars($heroElegido); ?></div>
         </div>
 
         <div class="resumen-item">
           <span class="resumen-label">Nombre del Solicitante</span>
-          <div class="resumen-value" id="resumen-nombre"><?php echo $nombre; ?></div>
+          <div class="resumen-value" id="resumen-nombre"><?php echo htmlspecialchars($nombre); ?></div>
         </div>
 
         <div class="resumen-item">
@@ -104,7 +159,7 @@ $datosValidos = !empty($datos['nombre']);
 
         <div class="resumen-item">
           <span class="resumen-label">Motivo de la Elección</span>
-          <div class="resumen-value" id="resumen-motivo"><?php echo nl2br($motivo); ?></div>
+          <div class="resumen-value" id="resumen-motivo"><?php echo nl2br(htmlspecialchars($motivo)); ?></div>
         </div>
       </div>
 
