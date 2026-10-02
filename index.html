@@ -224,6 +224,7 @@
           </div>
         </div>
 
+
         <!-- COLUMNA DERECHA: Formulario -->
         <div class="contact-wrap">
           <h1>Formulario de heros<small>Elige el que mas te guste</small></h1>
@@ -233,32 +234,37 @@
             method="POST"
             autocomplete="off"
           >
-  <div class="input-block">
-  <label>Nombre de hero elegido</label>
-  <!-- Cambiado a select; las opciones se inyectan vía JS -->
-  <select class="form-control" name="heroElegido" id="heroElegido" required>
-    <option value="" disabled selected hidden></option>
-  </select>
-</div>
-<div class="input-block">
-  <label>Tu nombre</label>
-  <input type="text" class="form-control" name="nombre" id="nombre" required />
-</div>
-<div class="input-block">
-  <label>Tu Email</label>
-  <!-- Añadido el pattern para validar la máscara del correo -->
-  <input type="email" class="form-control" name="email" id="email" pattern=".*@.*\.(es|com)$" title="El correo debe terminar en .es o .com" required />
-</div>
+            <div class="input-block">
+              <label>Nombre de hero elegido</label>
+              <!-- Eliminado 'required' -->
+              <select class="form-control" name="heroElegido" id="heroElegido">
+                <option value="" disabled selected hidden></option>
+              </select>
+            </div>
+            
+            <div class="input-block">
+              <label>Tu nombre</label>
+              <!-- Eliminado 'required' -->
+              <input type="text" class="form-control" name="nombre" id="nombre" />
+            </div>
+            
+            <div class="input-block">
+              <label>Tu Email</label>
+              <!-- Eliminado 'required', 'pattern' y cambiado a type="text" para evitar validación nativa HTML5 -->
+              <input type="text" class="form-control" name="email" id="email" />
+            </div>
+            
             <div class="input-block textarea">
               <label>Describe el porque de tu eleccion</label>
+              <!-- Eliminado 'required' -->
               <textarea
                 class="form-control"
                 rows="3"
                 name="motivo"
                 id="motivo"
-                required
               ></textarea>
             </div>
+            
             <button type="submit" class="square-button">Send</button>
           </form>
         </div>

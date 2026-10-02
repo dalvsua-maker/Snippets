@@ -12,18 +12,63 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email       = trim($_POST['email'] ?? '');
     $motivo      = trim($_POST['motivo'] ?? '');
 
-    $regexNombre = "/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/";
+    $errores = [];
+
+    // Validar Hero
+    if (empty($heroElegido)) {
+        $errores[] = 'Debes seleccionar un hero de la lista.';
+    }
 
     // Validar nombre en PHP
+    $regexNombre = "/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/";
     if (empty($nombre) || !preg_match($regexNombre, $nombre)) {
+        $errores[] = 'El nombre no es válido. Solo se permiten letras y espacios.';
+    }
+
+    // Validar Email (solo en servidor)
+    $regexEmail = "/.*@.*\.(es|com)$/";
+    if (empty($email) || !preg_match($regexEmail, $email)) {
+        $errores[] = 'El correo no es válido. Debe contener "@" y terminar en .es o .com.';
+    }
+
+    // Validar Motivo
+    if (empty($motivo)) {
+        $errores[] = 'Debes describir el motivo de tu elección.';
+    }
+
+    // Si hay errores, devolvemos el estado de error y la lista de mensajes unidos
+    if (!empty($errores)) {
         echo json_encode([
             'status'  => 'error',
-            'mensaje' => 'El nombre no es válido. Solo se permiten letras y espacios.'
+            'mensaje' => implode('<br>', $errores)
         ]);
         exit;
     }
 
-    // Si la validación es correcta, guardamos los datos en la SESIÓN
+ // Si la validación es correcta, guardamos en la base de datos MySQL
+    try {
+        $host = 'db'; // Nombre del servicio en docker-compose
+        $db   = 'snippets_db';
+        $user = 'snippets_user';
+        $pass = 'snippets_password';
+
+        $pdo = new PDO("mysql:host=$host;dbname=$db;charset=utf8mb4", $user, $pass, [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+        ]);
+
+        // Guardar en la tabla 'propuestas'
+        $stmt = $pdo->prepare("INSERT INTO propuestas (hero, nombre, email, motivo) VALUES (?, ?, ?, ?)");
+        $stmt->execute([$heroElegido, $nombre, $email, $motivo]);
+
+    } catch (PDOException $e) {
+        echo json_encode([
+            'status'  => 'error',
+            'mensaje' => 'Error al guardar en la base de datos: ' . $e->getMessage()
+        ]);
+        exit;
+    }
+
+    // Guardar también en la sesión
     $_SESSION['datosProyecto'] = [
         'heroElegido' => $heroElegido,
         'nombre'      => $nombre,
@@ -75,15 +120,6 @@ $datosValidos = !empty($datos['nombre']);
 <main class="resumen-main-container">
     <div class="contact-wrap resumen-card">
       <h1>Resumen del Proyecto <small>Confirmación de los datos de tu propuesta</small></h1>
-
-      <?php if (!empty($errores)): ?>
-        <div class="error-box">
-            <strong>Se encontraron errores en el envío:</strong>
-            <ul>
-                <?php foreach ($errores as $error) echo "<li>$error</li>"; ?>
-            </ul>
-        </div>
-      <?php endif; ?>
 
       <!-- Contenedor que PHP muestra si es POST, o que JavaScript mostrará si detecta localStorage -->
       <div id="contenedor-datos" <?php if (!$datosValidos) echo 'style="display: none;"'; ?>>
