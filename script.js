@@ -69,10 +69,12 @@ $(document).ready(function() {
 
  // ==========================================================================
     // VALIDACIÓN DEL FORMULARIO PREVIO AL ENVÍO PHP
+    // (RAMA PHP: toda la validación la hace resumen.php; JS solo envía y pinta los errores en index)
     // ==========================================================================
 $('.contact-form').on('submit', function(e) {
   e.preventDefault();
   $('.form-notification').remove();
+  $('.contact-form .input-block').removeClass('has-error');
 
   // 1. Guardamos los datos introducidos en el formulario
   var datosProyecto = {
@@ -82,6 +84,24 @@ $('.contact-form').on('submit', function(e) {
     motivo: $('#motivo').val() || ''
   };
 
+  // Muestra en index los errores devueltos por PHP
+  function mostrarErrores(mensaje, errores) {
+    var $mensajeHtml = $('<div class="form-notification error-message"></div>');
+    $mensajeHtml.append($('<strong></strong>').text('¡Error!'));
+
+    if (errores && Object.keys(errores).length > 0) {
+      var $lista = $('<ul style="margin:6px 0 0 18px; padding:0;"></ul>');
+      $.each(errores, function(campo, texto) {
+        $lista.append($('<li></li>').text(texto));
+        $('#' + campo).closest('.input-block').addClass('has-error');
+      });
+      $mensajeHtml.append($lista);
+    } else {
+      $mensajeHtml.append($('<br>')).append(document.createTextNode(mensaje || 'No se pudo validar el formulario.'));
+    }
+    $('.square-button').before($mensajeHtml);
+  }
+
   // 2. Enviamos la validación por AJAX
   $.ajax({
     url: 'resumen.php',
@@ -90,16 +110,22 @@ $('.contact-form').on('submit', function(e) {
     dataType: 'json',
     success: function(response) {
       if (response.status === 'error') {
-        var $mensajeHtml = $('<div class="form-notification error-message"></div>');
-        $mensajeHtml.html('<strong>¡Error!</strong><br>' + response.mensaje);
-        $('.square-button').before($mensajeHtml);
+        mostrarErrores(response.mensaje, response.errores);
       } else if (response.status === 'success') {
         // Guardamos en localStorage los datos válidos antes de redirigir
         localStorage.setItem('datosProyecto', JSON.stringify(datosProyecto));
         window.location.href = 'resumen.php';
       }
+    },
+    error: function() {
+      mostrarErrores('No se pudo contactar con el servidor. Inténtalo de nuevo.');
     }
   });
+});
+
+// Al corregir un campo se quita su marca de error
+$('.contact-form').find('.form-control').on('input change', function() {
+  $(this).closest('.input-block').removeClass('has-error');
 });
 
  // ==========================================================================
