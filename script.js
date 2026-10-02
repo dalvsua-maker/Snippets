@@ -68,74 +68,126 @@ $(document).ready(function() {
     }
 
  // ==========================================================================
-    // VALIDACIÓN DEL FORMULARIO PREVIO AL ENVÍO PHP
+    // VALIDACIÓN DEL FORMULARIO PREVIO AL ENVÍO
+    // (RAMA JS: toda la validación se hace aquí, sin PHP; los errores se muestran en index)
     // ==========================================================================
 $('.contact-form').on('submit', function(e) {
   e.preventDefault();
   $('.form-notification').remove();
+  $('.contact-form .input-block').removeClass('has-error');
 
   // 1. Guardamos los datos introducidos en el formulario
   var datosProyecto = {
-    heroElegido: $('#heroElegido').val() || '',
-    nombre: $('#nombre').val() || '',
-    email: $('#email').val() || '',
-    motivo: $('#motivo').val() || ''
+    heroElegido: ($('#heroElegido').val() || '').trim(),
+    nombre: ($('#nombre').val() || '').trim(),
+    email: ($('#email').val() || '').trim(),
+    motivo: ($('#motivo').val() || '').trim()
   };
 
-  // 2. Enviamos la validación por AJAX
-  $.ajax({
-    url: 'resumen.php',
-    type: 'POST',
-    data: $(this).serialize(),
-    dataType: 'json',
-    success: function(response) {
-      if (response.status === 'error') {
-        var $mensajeHtml = $('<div class="form-notification error-message"></div>');
-        $mensajeHtml.html('<strong>¡Error!</strong><br>' + response.mensaje);
-        $('.square-button').before($mensajeHtml);
-      } else if (response.status === 'success') {
-        // Guardamos en localStorage los datos válidos antes de redirigir
-        localStorage.setItem('datosProyecto', JSON.stringify(datosProyecto));
-        window.location.href = 'resumen.php';
-      }
-    }
-  });
+  // 2. VALIDACIONES (todas en JavaScript). Formato: errores[idDelCampo] = 'mensaje'
+  var errores = {};
+  var regexNombre = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/;
+  var regexEmail  = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  // Hero elegido: obligatorio, solo letras y espacios
+  if (datosProyecto.heroElegido === '') {
+    errores.heroElegido = 'Debes elegir un hero.';
+  } else if (!regexNombre.test(datosProyecto.heroElegido) || datosProyecto.heroElegido.length > 60) {
+    errores.heroElegido = 'El hero elegido no es válido.';
+  }
+
+  // Nombre: obligatorio, solo letras y espacios, entre 2 y 60 caracteres
+  if (datosProyecto.nombre === '') {
+    errores.nombre = 'El nombre es obligatorio.';
+  } else if (!regexNombre.test(datosProyecto.nombre)) {
+    errores.nombre = 'El nombre no es válido. Solo se permiten letras y espacios.';
+  } else if (datosProyecto.nombre.length < 2 || datosProyecto.nombre.length > 60) {
+    errores.nombre = 'El nombre debe tener entre 2 y 60 caracteres.';
+  }
+
+  // Email: obligatorio, formato válido y terminado en .es o .com
+  if (datosProyecto.email === '') {
+    errores.email = 'El correo electrónico es obligatorio.';
+  } else if (!regexEmail.test(datosProyecto.email)) {
+    errores.email = 'El correo electrónico no tiene un formato válido.';
+  } else if (!/\.(es|com)$/i.test(datosProyecto.email)) {
+    errores.email = 'El correo debe terminar en .es o .com';
+  }
+
+  // Motivo: obligatorio, entre 10 y 500 caracteres
+  if (datosProyecto.motivo === '') {
+    errores.motivo = 'Debes describir el motivo de tu elección.';
+  } else if (datosProyecto.motivo.length < 10) {
+    errores.motivo = 'El motivo debe tener al menos 10 caracteres.';
+  } else if (datosProyecto.motivo.length > 500) {
+    errores.motivo = 'El motivo no puede superar los 500 caracteres.';
+  }
+
+  // 3. Si hay errores: se muestran en index, se descartan datos antiguos y NO se avanza al resumen
+  if (Object.keys(errores).length > 0) {
+    localStorage.removeItem('datosProyecto');
+
+    var $mensajeHtml = $('<div class="form-notification error-message"></div>');
+    $mensajeHtml.append($('<strong></strong>').text('¡Error!'));
+    var $lista = $('<ul style="margin:6px 0 0 18px; padding:0;"></ul>');
+    $.each(errores, function(campo, texto) {
+      $lista.append($('<li></li>').text(texto));
+      $('#' + campo).closest('.input-block').addClass('has-error');
+    });
+    $mensajeHtml.append($lista);
+    $('.square-button').before($mensajeHtml);
+    return;
+  }
+
+  // 4. Todo correcto: guardamos en localStorage y avanzamos al resumen
+  localStorage.setItem('datosProyecto', JSON.stringify(datosProyecto));
+  window.location.href = 'resumen.html';
 });
 
- // ==========================================================================
-    // LOGICA RENDER DATA RESUMEN.HTML / RESUMEN.PHP
+// Al corregir un campo se quita su marca de error
+$('.contact-form').find('.form-control').on('input change', function() {
+  $(this).closest('.input-block').removeClass('has-error');
+});
+
     // ==========================================================================
-    // Verificamos si existe el contenedor que crearemos en resumen.php
+    // LOGICA RENDER DATA RESUMEN.HTML
+    // ==========================================================================
+    // Verificamos si existe el contenedor de resumen.html
     if ($('#resumen-hero').length > 0) {
 
-        // SI PHP HA DETECTADO ERRORES, DETENEMOS LA CARGA Y LIMPIAMOS LOCALSTORAGE
+        // (Heredado) Si existiera una caja de errores, detenemos la carga y limpiamos localStorage
         if ($('.error-box').length > 0) {
             $('#contenedor-datos').hide();
             $('#mensaje-vacio').show();
             localStorage.removeItem('datosProyecto'); 
             return;
         }
-// Lectura segura de localStorage
-var datosGuardados = localStorage.getItem('datosProyecto');
 
-if (datosGuardados && datosGuardados !== "undefined") {
-  try {
-    var datos = JSON.parse(datosGuardados);
-    
-    // Rellena los campos HTML si tu plantilla usa JS para mostrarlos:
-    $('#resumenHero').text(datos.heroElegido);
-    $('#resumenNombre').text(datos.nombre);
-    $('#resumenEmail').text(datos.email);
-    $('#resumenMotivo').text(datos.motivo);
+        // Lectura segura de localStorage
+        var datosGuardados = localStorage.getItem('datosProyecto');
 
-  } catch (e) {
-    console.error("Error al parsear localStorage:", e);
-  }
-} else {
-            // Validamos por si acaso el PHP inyectó datos vía POST a pesar de no haber localStorage
-            if ($('#resumen-hero').text().trim() === '') {
-                mostrarMensajeVacio();
+        if (datosGuardados && datosGuardados !== "undefined") {
+          try {
+            var datos = JSON.parse(datosGuardados);
+
+            if (datos && datos.nombre) {
+              // Rellena los campos del resumen (.text() evita inyectar HTML)
+              $('#resumen-hero').text(datos.heroElegido);
+              $('#resumen-nombre').text(datos.nombre);
+              $('#resumen-email').text(datos.email);
+              $('#resumen-motivo').text(datos.motivo).css('white-space', 'pre-line');
+
+              $('#mensaje-vacio').hide();
+              $('#contenedor-datos').show();
+            } else {
+              mostrarMensajeVacio();
             }
+          } catch (e) {
+            console.error("Error al parsear localStorage:", e);
+            mostrarMensajeVacio();
+          }
+        } else {
+            mostrarMensajeVacio();
         }
     }
 
