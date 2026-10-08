@@ -45,22 +45,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
- // Si la validación es correcta, guardamos en la base de datos MySQL
+ // Si la validación es correcta, guardamos en la base de datos MongoDB Atlas
     try {
-        $host = 'db'; // Nombre del servicio en docker-compose
-        $db   = 'snippets_db';
-        $user = 'snippets_user';
-        $pass = 'snippets_password';
+        // Las dependencias de Composer se instalan en la imagen, fuera del volumen montado
+        $autoload = '/opt/app/vendor/autoload.php';
+        if (!file_exists($autoload)) {
+            $autoload = __DIR__ . '/vendor/autoload.php';
+        }
+        if (!file_exists($autoload)) {
+            throw new RuntimeException('Faltan las dependencias de Composer (mongodb/mongodb).');
+        }
+        require_once $autoload;
 
-        $pdo = new PDO("mysql:host=$host;dbname=$db;charset=utf8mb4", $user, $pass, [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+        // La cadena de conexión de Atlas viene del entorno (archivo .env), nunca del código
+        $uri = getenv('MONGODB_URI');
+        $db  = getenv('MONGODB_DB') ?: 'snippets_db';
+        if (!$uri) {
+            throw new RuntimeException('Falta la variable de entorno MONGODB_URI.');
+        }
+
+        $cliente = new MongoDB\Client($uri, [
+            'serverSelectionTimeoutMS' => 5000 // Si Atlas no responde, falla en 5 s en lugar de 30 s
         ]);
 
-        // Guardar en la tabla 'propuestas'
-        $stmt = $pdo->prepare("INSERT INTO propuestas (hero, nombre, email, motivo) VALUES (?, ?, ?, ?)");
-        $stmt->execute([$heroElegido, $nombre, $email, $motivo]);
+        // Guardar en la colección 'propuestas'
+        $cliente->selectDatabase($db)->selectCollection('propuestas')->insertOne([
+            'hero'       => $heroElegido,
+            'nombre'     => $nombre,
+            'email'      => $email,
+            'motivo'     => $motivo,
+            'created_at' => new MongoDB\BSON\UTCDateTime()
+        ]);
 
-    } catch (PDOException $e) {
+    } catch (Exception $e) {
         echo json_encode([
             'status'  => 'error',
             'mensaje' => 'Error al guardar en la base de datos: ' . $e->getMessage()

@@ -1,0 +1,9 @@
+{
+    "name": "dalvsua-maker/snippets",
+    "description": "Snippets Lab - catálogo de heros con persistencia en MongoDB Atlas",
+    "require": {
+        "php": ">=8.1",
+        "ext-mongodb": "*",
+        "mongodb/mongodb": "^1.19 || ^2.0"
+    }
+}
