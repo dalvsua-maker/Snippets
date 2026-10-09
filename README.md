@@ -40,7 +40,7 @@ El proyecto utiliza un set de tecnologías nativas para maximizar la velocidad d
 ```text
 ├── .git/                  # Historial de Git
 ├── docker-compose.yml     # Configuración del entorno Docker
-├── Dockerfile             # Imagen personalizada para el servidor PHP Apache
+├── Dockerfile             # (rama BBDD) Imagen personalizada del servidor PHP Apache: extensión mongodb + Composer
 ├── composer.json          # (rama BBDD) Dependencias de PHP: mongodb/mongodb
 ├── .env.example           # (rama BBDD) Plantilla de variables de entorno (conexión a Atlas)
 ├── .gitignore             # (rama BBDD) Excluye .env y vendor/ del repositorio
@@ -101,11 +101,19 @@ MONGODB_DB=snippets_db
 ```
 
 ### 4. Levantar el entorno con Docker
-Ejecuta el siguiente comando en tu terminal. La primera vez tarda unos minutos, porque se compila la extensión de MongoDB para PHP; las siguientes veces aprovecha la caché de Docker:
+En las ramas `main`, `php` y `js` basta con:
+
+```bash
+docker compose up -d
+```
+
+En la rama `BBDD` hay que construir la imagen. La primera vez tarda unos minutos, porque se compila la extensión de MongoDB para PHP; las siguientes veces aprovecha la caché de Docker:
 
 ```bash
 docker compose up -d --build
 ```
+
+Si cambias de rama y vuelves a `BBDD`, ejecuta antes `docker compose down` y después `docker compose up -d --build --remove-orphans`, para que Docker use la imagen correcta.
 
 ### 5. Acceder a la aplicación
 Una vez desplegado el contenedor, abre tu navegador en:
@@ -118,7 +126,9 @@ Para comprobar que los datos se guardan, envía el formulario y consulta en Atla
 
 ## 🐳 Detalles de la Infraestructura Docker
 
-En la rama `BBDD`, el entorno se orquesta mediante `docker-compose.yml`, que define un único servicio, porque la base de datos no se ejecuta en local sino en MongoDB Atlas:
+En las ramas `main`, `php` y `js`, `docker-compose.yml` define un único servicio, `mi_servidor_php`, con la imagen oficial `php:8.2-apache`, el puerto `8080:80` y el directorio del proyecto montado en `/var/www/html/`. Ninguna de estas ramas usa base de datos.
+
+En la rama `BBDD`, el entorno se orquesta mediante `docker-compose.yml`, que también define un único servicio, porque la base de datos no se ejecuta en local sino en MongoDB Atlas:
 
 1.  **`mi_servidor_php` (`php-apache`):**
     *   **Imagen:** construida con el `Dockerfile` a partir de `php:8.2-apache`. Instala la extensión `mongodb` con PECL y las dependencias de Composer.
