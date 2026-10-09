@@ -19,7 +19,7 @@ El proyecto cuenta con estilos avanzados en **CSS3**, interactividad enriquecida
 *   **Persistencia de Datos en MongoDB Atlas:** Al enviar el formulario (en la rama `BBDD`), los datos se validan en el servidor y se insertan en la colección `propuestas` de MongoDB Atlas mediante el driver oficial `mongodb/mongodb`.
 *   **Gestión de la Base de Datos desde Atlas:** Los registros se consultan y administran desde el *Data Explorer* de MongoDB Atlas, sin instalar ni mantener un servidor de base de datos local.
 *   **Validación del Formulario en Varias Variantes:** La rama `main` combina la validación nativa del navegador (HTML5) con una comprobación del nombre en PHP. Las ramas `php` y `js` llevan toda la validación al servidor o al navegador, respectivamente. La rama `BBDD` valida en el servidor y persiste los datos en MongoDB Atlas. En `php`, `js` y `BBDD`, los errores se muestran en `index.html` y no se avanza al resumen si falla alguna validación.
-*   **Diseño Premium y Responsivo:** Paleta de colores futurista oscura ("Cyber-Blue") adaptada exhaustivamente para resoluciones móviles, tablets y ordenadores con componentes interactivos avanzados (menú móvil nativo y botones magnéticos).
+
 
 ---
 
