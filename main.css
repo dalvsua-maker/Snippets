@@ -1944,3 +1944,17 @@ html,
 body {
   overflow-x: clip;
 }
+/* Color base del icono de GitHub en la navegación */
+.nav-list .social-icon-link {
+  color: var(--text-muted) !important;
+}
+
+.nav-list .social-icon-link svg {
+  stroke: var(--text-muted);
+  transition: stroke 0.3s ease;
+}
+
+/* Cambia a blanco al pasar el cursor */
+.nav-list .social-icon-link:hover svg {
+  stroke: #FFFFFF;
+}
