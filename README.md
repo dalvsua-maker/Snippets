@@ -3,7 +3,7 @@
 
 ¡Bienvenido a **Snippets Lab**! Una plataforma web moderna e interactiva dedicada a la recolección, exhibición y catálogo de secciones **Hero** de alto impacto visual. Desarrollada de forma nativa utilizando código limpio, ligero y con rendimiento optimizado sin dependencias pesadas.
 
-El proyecto cuenta con estilos avanzados en **CSS3**, interactividad enriquecida con **jQuery**, persistencia de datos en **MongoDB Atlas** (base de datos en la nube) mediante el driver oficial de PHP y un entorno de desarrollo contenedorizado con **Docker Compose**. El procesamiento del formulario con **PHP 8.2** existe en las ramas `main`, `php` y `BBDD`; la rama `js` valida íntegramente en el navegador (ver [Ramas del Proyecto](#-ramas-del-proyecto-validación-del-formulario)).
+El proyecto cuenta con estilos avanzados en **CSS3**, interactividad enriquecida con **jQuery** y un entorno de desarrollo contenedorizado con **Docker Compose**. La rama `BBDD` añade persistencia de datos en **MongoDB Atlas** (base de datos en la nube) mediante el driver oficial de PHP. El procesamiento del formulario con **PHP 8.2** existe en las ramas `main`, `php` y `BBDD`; la rama `js` valida íntegramente en el navegador (ver [Ramas del Proyecto](#-ramas-del-proyecto-validación-y-persistencia)).
 
 ---
 
@@ -29,8 +29,8 @@ El proyecto utiliza un set de tecnologías nativas para maximizar la velocidad d
 
 *   **Frontend:** HTML5, CSS3 (Variables Globales, Flexbox, Grids), JavaScript, jQuery (v3+).
 *   **Backend:** PHP 8.2 (en la rama `BBDD`, conexión a MongoDB con la extensión `mongodb` y la librería `mongodb/mongodb`, gestionada con Composer).
-*   **Base de Datos:** MongoDB Atlas (cluster en la nube).
-*   **Herramientas de BBDD:** Atlas Data Explorer.
+*   **Base de Datos (rama `BBDD`):** MongoDB Atlas (cluster en la nube).
+*   **Herramientas de BBDD (rama `BBDD`):** Atlas Data Explorer.
 *   **Infraestructura:** Docker & Docker Compose.
 
 ---
@@ -40,10 +40,10 @@ El proyecto utiliza un set de tecnologías nativas para maximizar la velocidad d
 ```text
 ├── .git/                  # Historial de Git
 ├── docker-compose.yml     # Configuración del entorno Docker
-├── Dockerfile             # (rama BBDD) Imagen personalizada del servidor PHP Apache: extensión mongodb + Composer
+├── dockerfile             # (rama BBDD) Imagen personalizada del servidor PHP Apache: extensión mongodb + Composer
 ├── composer.json          # (rama BBDD) Dependencias de PHP: mongodb/mongodb
 ├── .env.example           # (rama BBDD) Plantilla de variables de entorno (conexión a Atlas)
-├── .gitignore             # (rama BBDD) Excluye .env y vendor/ del repositorio
+├── .gitignore             # (ramas main y BBDD) Excluye .env y vendor/ del repositorio
 ├── index.html             # Landing page principal, catálogo y formulario
 ├── resumen.php            # (ramas main, php y BBDD) Validación en servidor, guardado e interfaz de resumen
 ├── resumen.html           # (rama js) Página de resumen estática
@@ -88,7 +88,7 @@ git checkout BBDD
 No hace falta crear la base de datos ni la colección: Atlas las crea al guardar el primer registro.
 
 ### 3. Configurar las variables de entorno (rama `BBDD`)
-Copia la plantilla y rellénala con tu cadena de conexión, sustituyendo `<db_password>` por la contraseña del usuario de base de datos:
+Copia la plantilla y rellénala con tu cadena de conexión. Sustituye `USUARIO` y `CONTRASEÑA` por el usuario de base de datos y su contraseña (la cadena que te da Atlas trae `<db_password>` en el lugar de la contraseña):
 
 ```bash
 cp .env.example .env
@@ -131,7 +131,7 @@ En las ramas `main`, `php` y `js`, `docker-compose.yml` define un único servici
 En la rama `BBDD`, el entorno se orquesta mediante `docker-compose.yml`, que también define un único servicio, porque la base de datos no se ejecuta en local sino en MongoDB Atlas:
 
 1.  **`mi_servidor_php` (`php-apache`):**
-    *   **Imagen:** construida con el `Dockerfile` a partir de `php:8.2-apache`. Instala la extensión `mongodb` con PECL y las dependencias de Composer.
+    *   **Imagen:** construida con el `dockerfile` a partir de `php:8.2-apache`. Instala la extensión `mongodb` con PECL y las dependencias de Composer.
     *   **Dependencias de Composer:** se instalan en `/opt/app` y no en `/var/www/html`, porque ese directorio se sustituye por el volumen del proyecto y ocultaría la carpeta `vendor`.
     *   **Puerto mapeado:** `8080:80` (Redirecciona las peticiones locales al puerto 80 interno).
     *   **Volúmenes:** Enlace directo del directorio local (`./`) a `/var/www/html/`.
@@ -163,7 +163,7 @@ En la rama `BBDD`, las propuestas enviadas a través del formulario se guardan e
     *   **Rama `main`:** el navegador valida con los atributos HTML5 del formulario (`required`, `type="email"` y `pattern`); si todo pasa, `script.js` envía los datos por AJAX a `resumen.php`, que solo comprueba el nombre, los guarda en la sesión y los muestra en el resumen.
     *   **Rama `php`:** `script.js` envía los datos por AJAX a `resumen.php`, que los limpia con `trim()`, aplica las validaciones (expresiones regulares, `FILTER_VALIDATE_EMAIL`, longitudes), guarda los datos válidos en la sesión y los muestra escapados con `htmlspecialchars()`. Los errores devueltos se pintan en `index.html`.
     *   **Rama `js`:** `script.js` valida el formulario en el navegador, guarda los datos válidos en `localStorage` y `resumen.html` los muestra al cargar. Los errores se pintan en `index.html`.
-    *   **Rama `BBDD`:** `script.js` envía los datos por AJAX a `resumen.php`. PHP realiza la validación completa en el servidor y ejecuta la inserción en la colección `propuestas` de MongoDB Atlas (`insertOne` del driver oficial) antes de redirigir al resumen.
+    *   **Rama `BBDD`:** `script.js` envía los datos por AJAX a `resumen.php`. PHP valida los campos en el servidor (no vacíos, formato del nombre y del email) y ejecuta la inserción en la colección `propuestas` de MongoDB Atlas (`insertOne` del driver oficial) antes de redirigir al resumen.
 
 ---
 
@@ -178,7 +178,7 @@ git checkout js    # validación completa en el navegador (JavaScript)
 git checkout BBDD  # validación en PHP + persistencia en MongoDB Atlas + Docker con Composer
 ```
 
-### Reglas de validación (ramas `php`, `js` y `BBDD`, idénticas)
+### Reglas de validación (ramas `php` y `js`, idénticas)
 
 | Campo | Regla |
 | --- | --- |
@@ -187,7 +187,22 @@ git checkout BBDD  # validación en PHP + persistencia en MongoDB Atlas + Docker
 | Email | Obligatorio, con formato válido y terminado en `.es` o `.com`. |
 | Motivo | Obligatorio, entre 10 y 500 caracteres. |
 
-En las ramas `php`, `js` y `BBDD` el `<form>` lleva el atributo `novalidate`, de modo que el navegador no muestra sus propios avisos y toda la validación depende de la lógica de la rama correspondiente.
+### Reglas de validación de la rama `BBDD`
+
+La rama `BBDD` aplica reglas más sencillas, sin límites de longitud:
+
+| Campo | Regla |
+| --- | --- |
+| Hero elegido | Obligatorio (no puede estar vacío). |
+| Nombre | Obligatorio. Solo letras (con acentos y ñ) y espacios. |
+| Email | Obligatorio, debe contener `@` y terminar en `.es` o `.com`. |
+| Motivo | Obligatorio (no puede estar vacío). |
+
+### Validación del navegador (HTML5)
+
+*   En las ramas `php` y `js` el `<form>` lleva el atributo `novalidate`: los campos conservan `required`, `type="email"` y `pattern`, pero el navegador no muestra sus propios avisos y toda la validación depende de la lógica de la rama.
+*   En la rama `BBDD` el `<form>` no lleva `novalidate`, pero los campos no tienen `required` ni `pattern` y el email es `type="text"`. El navegador no valida nada y toda la validación la hace PHP.
+*   En la rama `main` el `<form>` no lleva `novalidate` y los campos conservan sus atributos HTML5, por lo que el navegador valida antes de enviar.
 
 ### 🌳 Rama `main`: validación mixta (HTML5 + PHP)
 
@@ -224,6 +239,7 @@ En las ramas `php`, `js` y `BBDD` el `<form>` lleva el atributo `novalidate`, de
 
 *   Requiere un servidor con PHP y sesiones.
 *   Si el envío no llega por AJAX (JavaScript desactivado), PHP redirige a `index.html#contacto` o a `resumen.php`.
+*   `script.js` guarda además una copia de los datos en `localStorage` tras un envío correcto, pero no se usa para pintar el resumen, que sale de la sesión de PHP.
 
 ### 🟨 Rama `js`: validación solo con JavaScript
 
@@ -243,21 +259,23 @@ En las ramas `php`, `js` y `BBDD` el `<form>` lleva el atributo `novalidate`, de
 
 ### 🗄️ Rama `BBDD`: validación en PHP y persistencia en MongoDB Atlas
 
-**Archivos:** `index.html`, `resumen.php`, `script.js`, `main.css`, `docker-compose.yml`, `Dockerfile`, `composer.json`, `.env.example`, `.gitignore`.
+**Archivos:** `index.html`, `resumen.php`, `script.js`, `main.css`, `docker-compose.yml`, `dockerfile`, `composer.json`, `.env.example`, `.gitignore`.
 
 **Flujo:**
 
-1.  El usuario envía el formulario en `index.html`. `script.js` intercepta la petición y manda los datos por **AJAX (POST)** a `resumen.php`.
-2.  `resumen.php` valida exhaustivamente todos los campos en el servidor.
-3.  Si la validación es correcta, `resumen.php` se conecta a MongoDB Atlas con la cadena `MONGODB_URI` (leída del entorno) e inserta un documento en la colección `propuestas`. Si Atlas no responde en 5 segundos, devuelve un error en JSON que se muestra en `index.html`.
-4.  Guarda una copia de confirmación en la sesión de PHP y responde con `status: "success"`.
-5.  `script.js` redirige a `resumen.php`, que lee los datos introducidos para mostrarlos en la pantalla de confirmación.
+1.  El usuario envía el formulario en `index.html`. `script.js` intercepta la petición (`preventDefault`) y manda los datos por **AJAX (POST)** a `resumen.php`. JavaScript no valida nada.
+2.  `resumen.php` limpia los datos con `trim()` y comprueba en el servidor que ninguno de los cuatro campos esté vacío, que el nombre solo tenga letras y espacios y que el email contenga `@` y termine en `.es` o `.com`. No comprueba longitudes.
+3.  **Si hay errores**, responde en JSON con `status: "error"` y todos los mensajes unidos por saltos de línea. `script.js` los muestra en una caja roja en `index.html`, encima del botón, sin marcar los campos. **No se redirige**.
+4.  **Si todo es correcto**, `resumen.php` se conecta a MongoDB Atlas con la cadena `MONGODB_URI` (leída del entorno) e inserta un documento en la colección `propuestas`. Si Atlas no responde en 5 segundos o falla el guardado, devuelve un error en JSON (`Error al guardar en la base de datos: ...`) que se muestra en `index.html`.
+5.  Guarda una copia de confirmación en la sesión de PHP y responde con `status: "success"`.
+6.  `script.js` redirige a `resumen.php`, que lee los datos de la sesión para mostrarlos en la pantalla de confirmación. Si se entra directamente sin datos, aparece el mensaje "Aún no se han enviado datos.".
 
 **Detalles a tener en cuenta:**
 
 *   Requiere un archivo `.env` con `MONGODB_URI`. Está en `.gitignore`: las credenciales nunca se suben al repositorio.
 *   En Atlas hay que permitir la IP desde la que se ejecuta la aplicación (**Network Access**) y usar un usuario de base de datos con permisos de lectura y escritura.
 *   MongoDB solo almacena las propuestas; el resumen que se muestra tras enviar sigue leyéndose de la sesión de PHP.
+*   `script.js` guarda además una copia en `localStorage` tras un envío correcto, pero no se usa para pintar el resumen.
 *   Esta rama ya no usa MySQL, phpMyAdmin ni `init.sql`.
 
 ---
@@ -267,9 +285,10 @@ En las ramas `php`, `js` y `BBDD` el `<form>` lleva el atributo `novalidate`, de
 | | Rama `main` | Rama `php` | Rama `js` | Rama `BBDD` |
 | --- | --- | --- | --- | --- |
 | Dónde se valida | Navegador (HTML5) y servidor (solo el nombre) | Servidor (`resumen.php`) | Navegador (`script.js`) | Servidor (`resumen.php`) |
-| Campos validados en el servidor | Nombre | Todos | Ninguno | Todos |
+| Campos validados en el servidor | Nombre | Todos | Ninguno | Todos (sin límites de longitud) |
+| Validación del navegador (HTML5) | Sí (`required`, `type="email"`, `pattern`) | Desactivada (`novalidate`) | Desactivada (`novalidate`) | Sin atributos HTML5 (no valida) |
 | Persistencia en BBDD | No | No | No | Sí (MongoDB Atlas, colección `propuestas`) |
-| Mensajes de error | Avisos nativos y caja roja para nombre | Caja roja con un mensaje por campo | Caja roja con un mensaje por campo | Caja roja con un mensaje por campo |
+| Mensajes de error | Avisos nativos y caja roja para nombre | Caja roja con un mensaje por campo | Caja roja con un mensaje por campo | Caja roja con un mensaje por línea, sin marcar los campos |
 | Página de resumen | `resumen.php` | `resumen.php` | `resumen.html` | `resumen.php` |
 | Datos entre páginas | Sesión de PHP | Sesión de PHP | `localStorage` | Sesión de PHP + MongoDB Atlas |
 | Infraestructura Docker | Básica (Apache + PHP) | Básica (Apache + PHP) | Opcional / Estática | PHP Apache con Composer; base de datos externa en Atlas |
